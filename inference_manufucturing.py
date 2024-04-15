@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ray.rllib.algorithms.algorithm import Algorithm
 from inference_storage import get_demand
+from transportation import get_locationiq_routes,Transportation
 
 
 class ManufactoringState(object):
@@ -23,13 +24,10 @@ class ManufactoringState(object):
 def get_manufucturing_insites():
     #load model 
     loaded_ppo_manufucturing = Algorithm.from_checkpoint('./checkpoint_manufucturing')
-    loaded_policy = loaded_ppo_manufucturing.get_policy()
     ray.shutdown()
     ray.init()
 
     date = input("Enter the date in this yyyy-mm-dd format:  ")
-    transportation_time = int(input("Enter the transpotation time in hours: "))
-    transportation_cost = int(input("Enter the transpotation cost: "))
     raw_material_cost = int(input("Enter the raw material cost: "))
     main_cost = int(input("Enter the sum of storage cost and manufacturing cost per day: "))
     production_cost_per_product = int(input("Enter the production cost per product: "))
@@ -39,7 +37,30 @@ def get_manufucturing_insites():
     raw_material_capacity = int(input("Enter the raw material capacity: "))
     require_raw_material_per_product = int(input("Enter the required raw material per product: "))
 
+    #get source and destination address
+    vehicals_capacity = str(input("Enter capacity of your unique vehicles seperated by space. -> capacity_for_v1 capacity_for_v2 ")).split(" ")
+    vehicals_cost = str(input("Enter cost of each vehical per KM seperated by space. -> cost_for_v1 cost_for_v2 ")).split(" ")
+    num_of_vehicals_per_type = str(input("Enter number of vehicals instance for each type seperated by space. -> count_for_v1 count_for_v2 ")).split(" ")
+    soucre_address = str(input("Enter source address: "))
+    destination_address = str(input("Enter destination address: "))
+    
+    try:
+        routes_info = get_locationiq_routes(source=soucre_address,destination= destination_address)
+        routes_km = routes_info['distance']
+        routes_time = routes_info['duration']
+    except Exception as e:
+        print(e)
+        return None
+    
+    vehicals_capacity = [int(x) for x in vehicals_capacity]
+    vehicals_cost = [int(x) for x in vehicals_cost]
+    num_of_vehicals_per_type = [int(x) for x in num_of_vehicals_per_type]
+    routes_km = [int(x) for x in routes_km]
+    routes_time = [int(x) for x in routes_time]
+
     state = ManufactoringState()
+    state.demand_history = [get_demand(time, date) for time in range(15)]
+    state.raw_material_history = [0 for i in range(15)]
 
     profit_list = []
     current_product_stock_list = []
@@ -52,13 +73,15 @@ def get_manufucturing_insites():
     production_cost_list = []
     revenue_list = []
 
-    state.demand_history = [get_demand(time) for time in range(15)]
-    state.raw_material_history = [0 for i in range(15)]
-
     for i in range(15):
         current_state = state.to_array()
         action = loaded_ppo_manufucturing.compute_single_action(current_state)
         new_manufacturing_rate, new_raw_material_stock = action
+
+        #calculate transportation time :
+        transportation_obj  = Transportation(int(np.floor(state.demand_history[0])),vehicals_capacity,vehicals_cost,num_of_vehicals_per_type,routes_km,routes_time,0.5)
+        transportation_cost,transportation_time = transportation_obj.inference()
+        transportation_time /=60
         if new_manufacturing_rate > max_manufacturing_rate:
             new_manufacturing_rate = max_manufacturing_rate
 
@@ -96,7 +119,6 @@ def get_manufucturing_insites():
         new_raw_material_list.append(new_raw_material_stock)
         manufacturing_rate_list.append(new_manufacturing_rate)
         total_products_delivered_list.append(total_products_to_deliver)
-    #   print(state.demand_history)
         demand_list.append(state.demand_history[0])
         production_cost_list.append(total_costs)
         revenue_list.append(revenue)
@@ -106,14 +128,11 @@ def get_manufucturing_insites():
         state.demand_history[1:15] = previous_demands
 
         previous_raw_history = state.raw_material_history[0:14]
-    #    print(state.raw_material_history)
         state.raw_material_history[0] = new_raw_material_stock
         state.raw_material_history[1:15] = previous_raw_history
-    #    print(state.raw_material_history)
         state = ManufactoringState(new_manufacturing_rate, state.current_stock_raw_material + new_raw_material_stock - (new_possible_stock*require_raw_material_per_product),
                                 (new_possible_stock + state.current_product_stock - total_products_to_deliver), state.demand_history, state.raw_material_history)
 
-    #   print(state.demand_history)
         profit_list.append(reward)
         print()
         print("Day number:", i+1)
@@ -157,7 +176,8 @@ def get_manufucturing_insites():
 
 def main(): 
     plot = get_manufucturing_insites()
-    plot.show()
+    if plot is not None:
+        plot.show()
   
 if __name__=="__main__": 
     main() 
