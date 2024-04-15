@@ -1,0 +1,20 @@
+{
+    "date": "2024-04-11",
+    "manufacturing_price": 70,
+    "selling_price": 100,
+    "raw_material_cost": 10,
+    "storage_capacity_of_warehouse": 1000,
+    "storage_cost_of_warehouse": 100,
+    "main_cost": 100,
+    "production_cost_per_product": 10,
+    "max_manufacturing_rate": 100,
+    "product_capacity": 1000,
+    "man_selling_price": 100,
+    "raw_material_capacity": 3000,
+    "require_raw_material_per_product": 3,
+    "vehicals_capacity": [300, 400, 500],
+    "vehicals_cost": [10, 15, 20],
+    "num_of_vehicals_per_type": [3,2,1],
+    "source_address": "Ahmedabad, Gujarat, India",
+    "destination_address": "Surat, Gujarat, India"
+}

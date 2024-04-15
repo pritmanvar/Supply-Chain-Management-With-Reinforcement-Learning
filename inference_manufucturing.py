@@ -24,8 +24,8 @@ class ManufactoringState(object):
 def get_manufucturing_insites():
     #load model 
     loaded_ppo_manufucturing = Algorithm.from_checkpoint('./checkpoint_manufucturing')
-    ray.shutdown()
-    ray.init()
+    # ray.shutdown()
+    # ray.init()
 
     date = input("Enter the date in this yyyy-mm-dd format:  ")
     raw_material_cost = int(input("Enter the raw material cost: "))
@@ -103,11 +103,11 @@ def get_manufucturing_insites():
                 (new_possible_stock*require_raw_material_per_product)
 
         # what can be fullfiled with this time limit
+        if (24 - transportation_time) < new_possible_stock/new_manufacturing_rate:
+            new_possible_stock = (
+                24-transportation_time)*new_manufacturing_rate
         total_products_to_deliver = min(
             new_possible_stock+state.current_product_stock, state.demand_history[0])
-        if (24 - transportation_time) < total_products_to_deliver/new_manufacturing_rate:
-            total_products_to_deliver = (
-                24-transportation_time)*new_manufacturing_rate
 
         revenue = selling_price*total_products_to_deliver
         total_costs = (production_cost_per_product * new_possible_stock) + main_cost + \
@@ -174,10 +174,10 @@ def get_manufucturing_insites():
 
     return plt
 
-def main(): 
-    plot = get_manufucturing_insites()
-    if plot is not None:
-        plot.show()
+# def main(): 
+#     plot = get_manufucturing_insites()
+#     if plot is not None:
+#         plot.show()
   
-if __name__=="__main__": 
-    main() 
+# if __name__=="__main__": 
+#     main() 
