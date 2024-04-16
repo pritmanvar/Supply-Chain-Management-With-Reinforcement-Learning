@@ -1,7 +1,7 @@
 {
     "date": "2024-04-11",
-    "manufacturing_price": 70,
-    "selling_price": 100,
+    "manufacturing_price": 100,
+    "selling_price": 150,
     "raw_material_cost": 10,
     "storage_capacity_of_warehouse": 1000,
     "storage_cost_of_warehouse": 100,
@@ -17,4 +17,4 @@
     "num_of_vehicals_per_type": [3,2,1],
     "source_address": "Ahmedabad, Gujarat, India",
     "destination_address": "Surat, Gujarat, India"
-}
+} 

@@ -43,8 +43,8 @@ def get_storage_insights(date:str="2024-04-15", manufacturing_price:int=70, sell
     for i in range(15):
         demand_history = np.array([get_demand(i+time, date) for time in range(15)])
         new_stock = loaded_ppo.compute_single_action([np.hstack((demand_history, np.array(current_stock)))])[0]
-        if new_stock + current_stock > capacity:
-            new_stock = capacity - current_stock
+        if new_stock + current_stock - min(current_stock, demand_history[0]) > capacity:
+            new_stock = capacity - current_stock + min(current_stock, demand_history[0])
 
         new_stock = int(get_manufucturing_insights(manufucturing_data["raw_material_cost"], manufucturing_data["main_cost"],manufucturing_data['production_cost_per_product'],manufucturing_data['max_manufacturing_rate'],manufucturing_data['product_capacity'],manufucturing_data['selling_price'],manufucturing_data['raw_material_capacity'],manufucturing_data['require_raw_material_per_product'],manufucturing_data['vehicals_capacity'],manufucturing_data['vehicals_cost'],manufucturing_data['num_of_vehicals_per_type'],manufucturing_data['source_address'],manufucturing_data['destination_address'], new_stock, date ))
         total_revenue = selling_price * min(current_stock, demand_history[0])
@@ -62,7 +62,7 @@ def get_storage_insights(date:str="2024-04-15", manufacturing_price:int=70, sell
 
 
         print()
-        print("Day number:", i+1)
+        print("Day number: storage ", i+1)
         print("Current stock is:", current_stock)
         print("agent requests for {} this much products".format(new_stock))
         print("demand for next 15 days is:", demand_history)

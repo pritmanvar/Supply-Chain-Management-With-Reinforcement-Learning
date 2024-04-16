@@ -6,7 +6,7 @@ from transportation import get_locationiq_routes,Transportation
 from datetime import datetime, timedelta
 
 class ManufactoringState(object):
-    def __init__(self, manufacturing_rate=10, current_stock_raw_material=10, current_product_stock=0, demand_history=[0 for i in range(15)], raw_material_history=[0 for i in range(15)]):
+    def __init__(self, manufacturing_rate=0, current_stock_raw_material=0, current_product_stock=0, demand_history=[0 for i in range(15)], raw_material_history=[0 for i in range(15)]):
         self.manufacturing_rate = manufacturing_rate
         self.current_stock_raw_material = current_stock_raw_material
         self.current_product_stock = current_product_stock
@@ -67,9 +67,9 @@ def get_manufucturing_insights(raw_material_cost, main_cost, production_cost_per
 
     print(routes_km, "ROUTES KM")
     #calculate transportation time :
-    transportation_obj  = Transportation(int(np.floor(state.demand_history[0])),vehicals_capacity,vehicals_cost,num_of_vehicals_per_type,routes_km,routes_time,0.5)
+    transportation_obj  = Transportation(int(np.floor(demand)),vehicals_capacity,vehicals_cost,num_of_vehicals_per_type,routes_km,routes_time,0.5)
     transpotation_cost,transpotation_time = transportation_obj.inference()
-    transpotation_time /=60
+    transpotation_time //=60
     
     print(transpotation_cost, transpotation_time, "Transpotation details")
     
@@ -96,7 +96,7 @@ def get_manufucturing_insights(raw_material_cost, main_cost, production_cost_per
     if new_manufacturing_rate > 0 and (24 - transpotation_time) < new_possible_stock//new_manufacturing_rate:
         new_possible_stock = (24-transpotation_time)*new_manufacturing_rate
         
-    total_products_to_deliver = min(new_possible_stock+state.current_product_stock, state.demand_history[0])
+    total_products_to_deliver = min(new_possible_stock+state.current_product_stock, demand)
 
     revenue = selling_price*total_products_to_deliver
     total_costs = (production_cost_per_product * new_possible_stock) + main_cost + (raw_material_cost * new_raw_material_stock) + transpotation_cost
