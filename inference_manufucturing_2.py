@@ -34,7 +34,7 @@ loaded_ppo_manufucturing = Algorithm.from_checkpoint('./checkpoint_manufucturing
 routes_km = []
 routes_time = []
 day_number = 0
-df = pd.DataFrame(columns=['date', 'current_stock_of_products', 'new_stock_of_products', 'demand', 'current_stock_of_raw_material', 'new_stock_of_raw_material', 'manufacturing_rate', 'total_products_delivered', 'production_cost', 'transpotation_cost', 'transpotation_time', 'revenue', 'profit'])
+df = pd.DataFrame(columns=['date', 'current stock of product in factory', 'produced products in next 24 hours', 'manufacturing demand', 'current stock of raw material in factory', 'new stock of raw material in next day', 'manufacturing rate per hour', 'total products delivered to warehouse', 'total cost', 'transpotation time', 'revenue per day', 'profit per day'])
 
 
 state = ManufactoringState()
@@ -117,7 +117,7 @@ def get_manufucturing_insights(raw_material_cost, main_cost, production_cost_per
     state.demand_history[0] = demand
     state.demand_history[1:15] = previous_demands
 
-    df.loc[len(df)] = [str(datetime.strptime(date, '%Y-%m-%d') + timedelta(days=int(day_number)))[:10], state.current_product_stock, new_possible_stock, state.demand_history[0], state.current_stock_raw_material, new_raw_material_stock, new_manufacturing_rate, total_products_to_deliver, total_costs, transpotation_cost, transpotation_time, revenue, reward]
+    df.loc[len(df)] = [str(datetime.strptime(date, '%Y-%m-%d') + timedelta(days=int(day_number)))[:10], state.current_product_stock, new_possible_stock, state.demand_history[0], state.current_stock_raw_material, new_raw_material_stock, new_manufacturing_rate, total_products_to_deliver, total_costs, 0 if total_products_to_deliver == 0 else transpotation_time, revenue, reward]
 
     previous_raw_history = state.raw_material_history[0:14]
     state.raw_material_history[0] = new_raw_material_stock
@@ -145,34 +145,34 @@ def get_manufacturing_graphs():
 
     fig, axs = plt.subplots(5, figsize=(16, 12))
 
-    axs[0].plot([i for i in range(len(df['current_stock_of_products']))], df['current_stock_of_products'], label='Current Stock')
-    axs[0].plot([i for i in range(len(df['new_stock_of_products']))], df['new_stock_of_products'], label='New Stock')
-    axs[0].plot([i for i in range(len(df['demand']))], df['demand'], label='Demand')
-    axs[0].plot([i for i in range(len(df['total_products_delivered']))], df['total_products_delivered'], label='Total delivered products')
+    axs[0].plot([i for i in range(len(df['current stock of product in factory']))], df['current stock of product in factory'], label='Current Stock')
+    axs[0].plot([i for i in range(len(df['produced products in next 24 hours']))], df['produced products in next 24 hours'], label='New Stock')
+    axs[0].plot([i for i in range(len(df['manufacturing demand']))], df['manufacturing demand'], label='Demand')
+    axs[0].plot([i for i in range(len(df['total products delivered to warehouse']))], df['total products delivered to warehouse'], label='Total delivered products')
     axs[0].get_xaxis().set_visible(False)
     axs[0].set_title('Current Stock, New Stock and Demand over Time')
     axs[0].legend()
 
-    axs[1].plot([i for i in range(len(np.cumsum(df['production_cost'])))], np.cumsum(df['production_cost']), label='Total production cost')
-    axs[1].plot([i for i in range(len(np.cumsum(df['revenue'])))], np.cumsum(df['revenue']), label='Total revenue')
+    axs[1].plot([i for i in range(len(np.cumsum(df['total cost'])))], np.cumsum(df['total cost']), label='Total cost')
+    axs[1].plot([i for i in range(len(np.cumsum(df['revenue per day'])))], np.cumsum(df['revenue per day']), label='Total revenue')
     axs[1].get_xaxis().set_visible(False)
     axs[1].set_title('Production Cost and Revenue Generated over Time')
     axs[1].legend()
 
-    axs[2].plot([i for i in range(len(np.cumsum(df['profit'])))], np.cumsum(df['profit']), label='Total Profit')
+    axs[2].plot([i for i in range(len(np.cumsum(df['profit per day'])))], np.cumsum(df['profit per day']), label='Total Profit')
     axs[2].get_xaxis().set_visible(False)
     axs[2].set_xlabel('Days')
     axs[2].set_title('Profit Generated over Time')
     axs[2].legend()
 
 
-    axs[3].plot([i for i in range(len((df['new_stock_of_raw_material'])))], (df['new_stock_of_raw_material']), label='New raw material order')
-    axs[3].plot([i for i in range(len((df['current_stock_of_raw_material'])))], (df['current_stock_of_raw_material']), label='Current raw material')
+    axs[3].plot([i for i in range(len((df['new stock of raw material in next day'])))], (df['new stock of raw material in next day']), label='New raw material order')
+    axs[3].plot([i for i in range(len((df['current stock of raw material in factory'])))], (df['current stock of raw material in factory']), label='Current raw material')
     axs[3].get_xaxis().set_visible(False)
     axs[3].set_title('New Raw material stock and current_raw material stock over Time')
     axs[3].legend()
 
-    axs[4].plot([i for i in range(len((df['manufacturing_rate'])))], (df['manufacturing_rate']), label='Manufacturing rate')
+    axs[4].plot([i for i in range(len((df['manufacturing rate per hour'])))], (df['manufacturing rate per hour']), label='Manufacturing rate')
     axs[4].set_xlabel('Days')
     axs[4].set_title('Manufacturing Rate over time')
     axs[4].legend()

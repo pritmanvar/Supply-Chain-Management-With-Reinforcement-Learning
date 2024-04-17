@@ -17,7 +17,7 @@ def get_demand(t, date="2024-4-11"):
         forecast = m.predict(future_dates)
         return forecast['yhat'][0]//100
 
-df = pd.DataFrame(columns=['date', 'current_stock', 'new_stock', 'demand', 'production_cost', 'revenue', 'profit'])
+df = pd.DataFrame(columns=['date', 'current stock of products in warehouse', 'new stock after one day in warehouse', 'selling demand', 'total cost', 'revenue per day', 'profit per day'])
 # profit_list = []
 # current_stock_list = []
 # new_stock_list = []
@@ -58,7 +58,7 @@ def get_storage_insights(date:str="2024-04-15", manufacturing_price:int=70, sell
         # profit_list.append(profit)
         # revenue_list.append(total_revenue)
 
-        df.loc[len(df)] = [str(datetime.strptime(date, '%Y-%m-%d') + timedelta(days=int(i)))[:10], current_stock, new_stock, demand_history[0], total_production_cost, total_revenue, profit]
+        df.loc[len(df)] = [str(datetime.strptime(date, '%Y-%m-%d') + timedelta(days=int(i)))[:10], current_stock, new_stock, demand_history[0], total_production_cost + storage_cost, total_revenue, profit]
 
 
         print()
@@ -77,20 +77,20 @@ def get_storage_graphs():
     global df
     fig, axs = plt.subplots(3, figsize=(16, 12))
 
-    axs[0].plot([i for i in range(len(df['current_stock']))], df['current_stock'], label='Current Stock')
-    axs[0].plot([i for i in range(len(df['new_stock']))], df['new_stock'], label='New Stock')
-    axs[0].plot([i for i in range(len(df['demand']))], df['demand'], label='Demand')
+    axs[0].plot([i for i in range(len(df['current stock of products in warehouse']))], df['current stock of products in warehouse'], label='Current Stock')
+    axs[0].plot([i for i in range(len(df['new stock after one day in warehouse']))], df['new stock after one day in warehouse'], label='New Stock')
+    axs[0].plot([i for i in range(len(df['selling demand']))], df['selling demand'], label='Demand')
     axs[0].get_xaxis().set_visible(False)
     axs[0].set_title('Current Stock, New Stock and Demand over Time')
     axs[0].legend()
 
-    axs[1].plot([i for i in range(len(np.cumsum(df['production_cost'])))], np.cumsum(df['production_cost']), label='Total production cost')
-    axs[1].plot([i for i in range(len(np.cumsum(df['revenue'])))], np.cumsum(df['revenue']), label='Total revenue')
+    axs[1].plot([i for i in range(len(np.cumsum(df['total cost'])))], np.cumsum(df['total cost']), label='Total production cost')
+    axs[1].plot([i for i in range(len(np.cumsum(df['revenue per day'])))], np.cumsum(df['revenue per day']), label='Total revenue')
     axs[1].get_xaxis().set_visible(False)
     axs[1].set_title('Production Cost and Revenue Generated over Time')
     axs[1].legend()
 
-    axs[2].plot([i for i in range(len(np.cumsum(df['profit'])))], np.cumsum(df['profit']), label='Total Profit')
+    axs[2].plot([i for i in range(len(np.cumsum(df['profit per day'])))], np.cumsum(df['profit per day']), label='Total Profit')
     axs[2].set_xlabel('Days')
     axs[2].set_title('Profit Generated over Time')
     axs[2].legend()
